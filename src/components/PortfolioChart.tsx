@@ -1,0 +1,264 @@
+import React, { useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  ComposedChart,
+} from "recharts";
+import { ChartDataPoint } from "../types";
+import { formatCurrency, formatPercent } from "../utils/calculations";
+import { TrendingUp, TrendingDown, BarChart3 } from "lucide-react";
+
+interface PortfolioChartProps {
+  data: ChartDataPoint[];
+  initialCapital: number;
+}
+
+type ChartView = "value" | "returns" | "drawdown";
+
+/**
+ * Interactive Portfolio Performance Chart
+ */
+export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
+  const [activeView, setActiveView] = useState<ChartView>("value");
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="flex items-center justify-center h-64 text-gray-500">
+          <div className="text-center">
+            <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <p>No data available</p>
+            <p className="text-sm">
+              Run a simulation to see portfolio performance
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Prepare chart data based on view
+  const chartData = data.map((point) => ({
+    ...point,
+    returns: ((point.value - initialCapital) / initialCapital) * 100,
+    benchmarkReturns: point.benchmark
+      ? ((point.benchmark - initialCapital) / initialCapital) * 100
+      : 0,
+    date: new Date(point.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }),
+  }));
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+
+      return (
+        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
+          <p className="font-medium text-gray-900 mb-2">{label}</p>
+
+          {activeView === "value" && (
+            <>
+              <div className="flex items-center space-x-2 mb-1">
+                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <span className="text-sm">
+                  Portfolio: {formatCurrency(data.value)}
+                </span>
+              </div>
+              {data.benchmark && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                  <span className="text-sm">
+                    Benchmark: {formatCurrency(data.benchmark)}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeView === "returns" && (
+            <>
+              <div className="flex items-center space-x-2 mb-1">
+                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <span className="text-sm">
+                  Portfolio: {formatPercent(data.returns / 100, 2)}
+                </span>
+              </div>
+              {data.benchmarkReturns && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                  <span className="text-sm">
+                    Benchmark: {formatPercent(data.benchmarkReturns / 100, 2)}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+
+          {activeView === "drawdown" && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span className="text-sm">
+                Drawdown: {formatPercent(data.drawdown / 100, 2)}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const viewConfig = {
+    value: {
+      title: "Portfolio Value",
+      icon: TrendingUp,
+      color: "#2563eb",
+      yAxisFormatter: (value: number) => formatCurrency(value, 0),
+    },
+    returns: {
+      title: "Cumulative Returns",
+      icon: BarChart3,
+      color: "#059669",
+      yAxisFormatter: (value: number) => `${value.toFixed(1)}%`,
+    },
+    drawdown: {
+      title: "Drawdown",
+      icon: TrendingDown,
+      color: "#dc2626",
+      yAxisFormatter: (value: number) => `${value.toFixed(1)}%`,
+    },
+  };
+
+  const currentConfig = viewConfig[activeView];
+  const IconComponent = currentConfig.icon;
+
+  return (
+    <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div className="flex items-center space-x-2 mb-4 sm:mb-0">
+          <IconComponent className="h-5 w-5 text-blue-600" />
+          <h2 className="text-xl font-semibold text-gray-900">
+            {currentConfig.title}
+          </h2>
+        </div>
+
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+          {Object.entries(viewConfig).map(([key, config]) => {
+            const ViewIcon = config.icon;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveView(key as ChartView)}
+                className={`
+                  flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all
+                  ${
+                    activeView === key
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }
+                `}
+              >
+                <ViewIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  {config.title.split(" ")[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          {activeView === "drawdown" ? (
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis
+                dataKey="date"
+                stroke="#6b7280"
+                fontSize={12}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="#6b7280"
+                fontSize={12}
+                tickLine={false}
+                tickFormatter={currentConfig.yAxisFormatter}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="drawdown"
+                stroke={currentConfig.color}
+                fill={currentConfig.color}
+                fillOpacity={0.3}
+                strokeWidth={2}
+              />
+            </ComposedChart>
+          ) : (
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis
+                dataKey="date"
+                stroke="#6b7280"
+                fontSize={12}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="#6b7280"
+                fontSize={12}
+                tickLine={false}
+                tickFormatter={currentConfig.yAxisFormatter}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+
+              <Line
+                type="monotone"
+                dataKey={activeView === "value" ? "value" : "returns"}
+                stroke={currentConfig.color}
+                strokeWidth={3}
+                dot={false}
+                name="Portfolio"
+                activeDot={{ r: 6, fill: currentConfig.color }}
+              />
+
+              {activeView === "value" && chartData[0]?.benchmark && (
+                <Line
+                  type="monotone"
+                  dataKey="benchmark"
+                  stroke="#9ca3af"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  name="Benchmark"
+                />
+              )}
+
+              {activeView === "returns" && chartData[0]?.benchmarkReturns && (
+                <Line
+                  type="monotone"
+                  dataKey="benchmarkReturns"
+                  stroke="#9ca3af"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  name="Benchmark"
+                />
+              )}
+            </LineChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
