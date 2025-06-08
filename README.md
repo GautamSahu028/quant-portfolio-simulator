@@ -236,6 +236,6 @@ This simulator is for educational and research purposes only. Past performance d
 - [ ] Portfolio optimization algorithms
 - [ ] Advanced risk metrics (VaR, CVaR)
 - [ ] Multi-timeframe analysis
-- [ ] Backtesting API for external integrations
+- [ ] Backtesting API for external integration
 
 ---
