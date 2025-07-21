@@ -345,7 +345,7 @@ export class PortfolioSimulator {
   }
 
   private liquidateAll(date: string, reason: string): void {
-    // Sell all positions (simplified - would need current prices in real implementation)
+    console.log(`Liquidating all positions on ${date} due to ${reason}`);
     this.portfolio.assets = {};
     this.portfolio.totalValue = this.portfolio.cash;
   }

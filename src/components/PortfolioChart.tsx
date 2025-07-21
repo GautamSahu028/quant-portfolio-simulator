@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Area,
   ComposedChart,
+  TooltipProps,
 } from "recharts";
 import { ChartDataPoint } from "../types";
 import { formatCurrency, formatPercent } from "../utils/calculations";
@@ -21,6 +22,13 @@ interface PortfolioChartProps {
 }
 
 type ChartView = "value" | "returns" | "drawdown";
+
+interface ExtendedChartDataPoint extends ChartDataPoint {
+  returns: number;
+  benchmarkReturns: number;
+  drawdown: number;
+  date: string;
+}
 
 /**
  * Interactive Portfolio Performance Chart
@@ -44,8 +52,7 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
     );
   }
 
-  // Prepare chart data based on view
-  const chartData = data.map((point) => ({
+  const chartData: ExtendedChartDataPoint[] = data.map((point) => ({
     ...point,
     returns: ((point.value - initialCapital) / initialCapital) * 100,
     benchmarkReturns: point.benchmark
@@ -57,9 +64,13 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
     }),
   }));
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
+    active,
+    payload,
+    label,
+  }) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
+      const data = payload[0].payload as ExtendedChartDataPoint;
 
       return (
         <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
@@ -68,14 +79,14 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
           {activeView === "value" && (
             <>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <div className="w-3 h-3 bg-blue-600 rounded" />
                 <span className="text-sm">
                   Portfolio: {formatCurrency(data.value)}
                 </span>
               </div>
               {data.benchmark && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                  <div className="w-3 h-3 bg-gray-400 rounded" />
                   <span className="text-sm">
                     Benchmark: {formatCurrency(data.benchmark)}
                   </span>
@@ -87,14 +98,14 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
           {activeView === "returns" && (
             <>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-3 h-3 bg-blue-600 rounded"></div>
+                <div className="w-3 h-3 bg-blue-600 rounded" />
                 <span className="text-sm">
                   Portfolio: {formatPercent(data.returns / 100, 2)}
                 </span>
               </div>
               {data.benchmarkReturns && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-400 rounded"></div>
+                  <div className="w-3 h-3 bg-gray-400 rounded" />
                   <span className="text-sm">
                     Benchmark: {formatPercent(data.benchmarkReturns / 100, 2)}
                   </span>
@@ -105,9 +116,9 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
 
           {activeView === "drawdown" && (
             <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <div className="w-3 h-3 bg-red-500 rounded" />
               <span className="text-sm">
-                Drawdown: {formatPercent(data.drawdown / 100, 2)}
+                Drawdown: {formatPercent((data.drawdown ?? 0) / 100, 2)}
               </span>
             </div>
           )}
