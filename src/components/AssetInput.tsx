@@ -143,7 +143,7 @@ export function AssetInput({
 
   // Get today's date for max date constraints
   const today = new Date().toISOString().split("T")[0];
-  const minDate = "2020-01-01";
+  const minDate = "1980-01-01";
 
   return (
     <div className="space-y-6">
