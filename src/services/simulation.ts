@@ -139,6 +139,7 @@ export class PortfolioSimulator {
             });
           }
         } else if (dayIndex % 20 === 0) {
+          // Hyper-Parameter -> rebalance after -> 20 days
           // Rebalance every 20 days
           // Rebalancing logic
           const targetWeight = 1 / this.config.tickers.length;
@@ -148,6 +149,7 @@ export class PortfolioSimulator {
             const currentWeight = currentValue / this.portfolio.totalValue;
 
             if (Math.abs(currentWeight - targetWeight) > 0.05) {
+              // Hyper-Parameter -> drift -> 0.05(5%)
               signals.push({
                 ticker,
                 action: currentWeight > targetWeight ? "SELL" : "BUY",
@@ -167,12 +169,12 @@ export class PortfolioSimulator {
             if (recent.length >= 20) {
               const momentum =
                 (recent[recent.length - 1] - recent[0]) / recent[0];
-
+              // Hyper-Parameter -> momentum threshold -> 0.05(5%)
               if (momentum > 0.05 && !(ticker in this.portfolio.assets)) {
                 signals.push({
                   ticker,
                   action: "BUY",
-                  weight: 0.2,
+                  weight: 0.2, // Hyper-Parameter -> weight -> 0.2(20%)
                   reason: `Strong momentum: ${(momentum * 100).toFixed(1)}%`,
                 });
               } else if (momentum < -0.05 && ticker in this.portfolio.assets) {
@@ -189,6 +191,7 @@ export class PortfolioSimulator {
 
       case "mean-reversion":
         if (dayIndex >= 20) {
+          // Hyper-Parameter -> lookback period -> 20 days
           // Mean reversion strategy
           for (const ticker of this.config.tickers) {
             const recent = this.getRecentPrices(ticker, date, 20);
@@ -196,12 +199,12 @@ export class PortfolioSimulator {
               const currentPrice = prices[ticker];
               const average = recent.reduce((a, b) => a + b, 0) / recent.length;
               const deviation = (currentPrice - average) / average;
-
+              // Hyper-Parameter -> deviation threshold -> 0.1(10%)
               if (deviation < -0.1 && !(ticker in this.portfolio.assets)) {
                 signals.push({
                   ticker,
                   action: "BUY",
-                  weight: 0.2,
+                  weight: 0.2, // Hyper-Parameter -> weight -> 0.2(20%)
                   reason: `Oversold: ${(deviation * 100).toFixed(
                     1
                   )}% below average`,
@@ -255,7 +258,8 @@ export class PortfolioSimulator {
     if (signal.action === "BUY") {
       const targetValue = signal.weight
         ? this.portfolio.totalValue * signal.weight
-        : Math.min(this.portfolio.cash * 0.2, 10000);
+        : Math.min(this.portfolio.cash * 0.2, 10000); // Hyper-Parameter -> max investment per trade -> 10000
+      // Hyper-Parameter -> max investment per trade -> 20% of cash
       quantity = Math.floor(targetValue / price);
       value = quantity * price;
 
@@ -349,6 +353,47 @@ export class PortfolioSimulator {
     this.portfolio.assets = {};
     this.portfolio.totalValue = this.portfolio.cash;
   }
+  /*
+  Note: This method doesn't simulate the selling trades or add the stock value to cash. It assumes you already liquidated before calling this, or you're using this as a hard-stop shutdown.
+        We could optionally modify it to:
+          - Loop through each holding
+          - Sell it at current price
+          - Log each sale
+  private liquidateAll(date: string, reason: string): void {
+    console.log(`Liquidating all positions on ${date} due to ${reason}`);
+
+    // Loop over all current holdings
+    for (const [ticker, quantity] of Object.entries(this.portfolio.assets)) {
+      const price = this.historicalData[ticker]
+        ?.find((d) => d.date === date)?.close;
+
+      if (price && quantity > 0) {
+        const value = quantity * price;
+
+        // Add cash from sale
+        this.portfolio.cash += value;
+
+        // Log trade
+        this.trades.push({
+          id: `${date}-${ticker}-${Date.now()}`,
+          date,
+          ticker,
+          action: "SELL",
+          quantity,
+          price,
+          value,
+          reason,
+        });
+      }
+    }
+
+    // Clear all positions
+    this.portfolio.assets = {};
+
+    // Update portfolio value (cash only now)
+    this.portfolio.totalValue = this.portfolio.cash;
+  }
+  */
 
   private calculateMetrics(): PerformanceMetrics {
     const returns = this.portfolio.dailyReturns;
@@ -388,7 +433,7 @@ export class PortfolioSimulator {
 
     const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
     const volatility = this.calculateVolatility(returns) / Math.sqrt(252); // Daily vol
-    const riskFreeRate = 0.02 / 252; // Assume 2% annual risk-free rate
+    const riskFreeRate = 0.02 / 252; // Hyper-Parameter -> risk-free rate -> 2% annualized
 
     return volatility > 0 ? (meanReturn - riskFreeRate) / volatility : 0;
   }
@@ -435,7 +480,7 @@ export class PortfolioSimulator {
         date,
         value,
         drawdown: drawdown * 100,
-        benchmark: this.config.initialCapital * (1 + 0.0003 * index), // Simple benchmark
+        benchmark: this.config.initialCapital * (1 + 0.0003 * index), // Hyper-Parameter -> benchmark growth rate -> 0.03% daily
       };
     });
   }
