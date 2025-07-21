@@ -31,22 +31,20 @@ interface ExtendedChartDataPoint extends ChartDataPoint {
 }
 
 /**
- * Interactive Portfolio Performance Chart
+ * Interactive Portfolio Performance Chart with Dark Theme
  */
 export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
   const [activeView, setActiveView] = useState<ChartView>("value");
 
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="flex items-center justify-center h-64 text-gray-500">
-          <div className="text-center">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <p>No data available</p>
-            <p className="text-sm">
-              Run a simulation to see portfolio performance
-            </p>
-          </div>
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <BarChart3 className="h-12 w-12 mx-auto mb-4 text-slate-400" />
+          <p className="text-slate-300">No data available</p>
+          <p className="text-sm text-slate-400">
+            Run a simulation to see portfolio performance
+          </p>
         </div>
       </div>
     );
@@ -73,21 +71,21 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
       const data = payload[0].payload as ExtendedChartDataPoint;
 
       return (
-        <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900 mb-2">{label}</p>
+        <div className="bg-slate-800 p-4 border border-slate-700 rounded-lg shadow-lg">
+          <p className="font-medium text-slate-100 mb-2">{label}</p>
 
           {activeView === "value" && (
             <>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-3 h-3 bg-blue-600 rounded" />
-                <span className="text-sm">
+                <div className="w-3 h-3 bg-blue-500 rounded" />
+                <span className="text-sm text-slate-200">
                   Portfolio: {formatCurrency(data.value)}
                 </span>
               </div>
               {data.benchmark && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-400 rounded" />
-                  <span className="text-sm">
+                  <div className="w-3 h-3 bg-slate-400 rounded" />
+                  <span className="text-sm text-slate-200">
                     Benchmark: {formatCurrency(data.benchmark)}
                   </span>
                 </div>
@@ -98,15 +96,15 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
           {activeView === "returns" && (
             <>
               <div className="flex items-center space-x-2 mb-1">
-                <div className="w-3 h-3 bg-blue-600 rounded" />
-                <span className="text-sm">
+                <div className="w-3 h-3 bg-emerald-500 rounded" />
+                <span className="text-sm text-slate-200">
                   Portfolio: {formatPercent(data.returns / 100, 2)}
                 </span>
               </div>
               {data.benchmarkReturns && (
                 <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 bg-gray-400 rounded" />
-                  <span className="text-sm">
+                  <div className="w-3 h-3 bg-slate-400 rounded" />
+                  <span className="text-sm text-slate-200">
                     Benchmark: {formatPercent(data.benchmarkReturns / 100, 2)}
                   </span>
                 </div>
@@ -117,7 +115,7 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
           {activeView === "drawdown" && (
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded" />
-              <span className="text-sm">
+              <span className="text-sm text-slate-200">
                 Drawdown: {formatPercent((data.drawdown ?? 0) / 100, 2)}
               </span>
             </div>
@@ -132,19 +130,19 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
     value: {
       title: "Portfolio Value",
       icon: TrendingUp,
-      color: "#2563eb",
+      color: "#3b82f6",
       yAxisFormatter: (value: number) => formatCurrency(value, 0),
     },
     returns: {
       title: "Cumulative Returns",
       icon: BarChart3,
-      color: "#059669",
+      color: "#10b981",
       yAxisFormatter: (value: number) => `${value.toFixed(1)}%`,
     },
     drawdown: {
       title: "Drawdown",
       icon: TrendingDown,
-      color: "#dc2626",
+      color: "#ef4444",
       yAxisFormatter: (value: number) => `${value.toFixed(1)}%`,
     },
   };
@@ -153,16 +151,17 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
   const IconComponent = currentConfig.icon;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div className="w-full h-full flex flex-col">
+      {/* Header with view switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 flex-shrink-0">
         <div className="flex items-center space-x-2 mb-4 sm:mb-0">
-          <IconComponent className="h-5 w-5 text-blue-600" />
-          <h2 className="text-xl font-semibold text-gray-900">
+          <IconComponent className="h-5 w-5 text-blue-400" />
+          <h3 className="text-lg font-medium text-slate-100">
             {currentConfig.title}
-          </h2>
+          </h3>
         </div>
 
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+        <div className="flex space-x-1 bg-slate-800 rounded-lg p-1">
           {Object.entries(viewConfig).map(([key, config]) => {
             const ViewIcon = config.icon;
             return (
@@ -173,8 +172,8 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
                   flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all
                   ${
                     activeView === key
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                      ? "bg-slate-700 text-blue-400 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
                   }
                 `}
               >
@@ -188,21 +187,24 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
         </div>
       </div>
 
-      <div className="h-80">
+      {/* Chart container */}
+      <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           {activeView === "drawdown" ? (
             <ComposedChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
               <XAxis
                 dataKey="date"
-                stroke="#6b7280"
+                stroke="#94a3b8"
                 fontSize={12}
                 tickLine={false}
+                axisLine={false}
               />
               <YAxis
-                stroke="#6b7280"
+                stroke="#94a3b8"
                 fontSize={12}
                 tickLine={false}
+                axisLine={false}
                 tickFormatter={currentConfig.yAxisFormatter}
               />
               <Tooltip content={<CustomTooltip />} />
@@ -211,27 +213,29 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
                 dataKey="drawdown"
                 stroke={currentConfig.color}
                 fill={currentConfig.color}
-                fillOpacity={0.3}
+                fillOpacity={0.2}
                 strokeWidth={2}
               />
             </ComposedChart>
           ) : (
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#475569" />
               <XAxis
                 dataKey="date"
-                stroke="#6b7280"
+                stroke="#94a3b8"
                 fontSize={12}
                 tickLine={false}
+                axisLine={false}
               />
               <YAxis
-                stroke="#6b7280"
+                stroke="#94a3b8"
                 fontSize={12}
                 tickLine={false}
+                axisLine={false}
                 tickFormatter={currentConfig.yAxisFormatter}
               />
               <Tooltip content={<CustomTooltip />} />
-              <Legend />
+              <Legend wrapperStyle={{ color: "#94a3b8" }} />
 
               <Line
                 type="monotone"
@@ -247,7 +251,7 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
                 <Line
                   type="monotone"
                   dataKey="benchmark"
-                  stroke="#9ca3af"
+                  stroke="#94a3b8"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
@@ -259,7 +263,7 @@ export function PortfolioChart({ data, initialCapital }: PortfolioChartProps) {
                 <Line
                   type="monotone"
                   dataKey="benchmarkReturns"
-                  stroke="#9ca3af"
+                  stroke="#94a3b8"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}

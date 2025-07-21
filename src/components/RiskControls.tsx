@@ -1,6 +1,10 @@
-import React from 'react';
-import { Shield, AlertTriangle, TrendingDown } from 'lucide-react';
-import { RiskControls as RiskControlsType } from '../types';
+import { Shield, AlertTriangle, TrendingDown } from "lucide-react";
+
+interface RiskControlsType {
+  maxDrawdown: number;
+  volatilityCap: number;
+  stopLoss: number;
+}
 
 interface RiskControlsProps {
   riskControls: RiskControlsType;
@@ -8,152 +12,224 @@ interface RiskControlsProps {
 }
 
 /**
- * Risk Controls Panel Component
+ * Risk Controls Panel Component (Dark Theme)
  * Manages portfolio risk parameters
  */
-export function RiskControls({ riskControls, onRiskControlsChange }: RiskControlsProps) {
+export function RiskControls({
+  riskControls,
+  onRiskControlsChange,
+}: RiskControlsProps) {
   const updateControl = (field: keyof RiskControlsType, value: number) => {
     onRiskControlsChange({
       ...riskControls,
-      [field]: value
+      [field]: value,
     });
   };
 
   const riskItems = [
     {
-      key: 'maxDrawdown' as keyof RiskControlsType,
-      label: 'Max Drawdown',
-      description: 'Maximum allowed portfolio decline from peak',
+      key: "maxDrawdown" as keyof RiskControlsType,
+      label: "Max Drawdown",
+      description: "Maximum allowed portfolio decline from peak",
       icon: TrendingDown,
       min: 5,
       max: 50,
       step: 1,
-      suffix: '%',
-      color: 'red'
+      suffix: "%",
+      color: "red",
     },
     {
-      key: 'volatilityCap' as keyof RiskControlsType,
-      label: 'Volatility Cap',
-      description: 'Maximum allowed portfolio volatility',
+      key: "volatilityCap" as keyof RiskControlsType,
+      label: "Volatility Cap",
+      description: "Maximum allowed portfolio volatility",
       icon: AlertTriangle,
       min: 10,
       max: 100,
       step: 5,
-      suffix: '%',
-      color: 'yellow'
+      suffix: "%",
+      color: "yellow",
     },
     {
-      key: 'stopLoss' as keyof RiskControlsType,
-      label: 'Stop Loss',
-      description: 'Maximum loss from initial capital',
+      key: "stopLoss" as keyof RiskControlsType,
+      label: "Stop Loss",
+      description: "Maximum loss from initial capital",
       icon: Shield,
       min: 5,
       max: 50,
       step: 1,
-      suffix: '%',
-      color: 'blue'
-    }
+      suffix: "%",
+      color: "blue",
+    },
   ];
 
-  const getColorClasses = (color: string, isActive: boolean = false) => {
+  const getColorClasses = (color: string) => {
     const colors = {
       red: {
-        bg: isActive ? 'bg-red-50' : 'bg-red-25',
-        border: isActive ? 'border-red-300' : 'border-red-200',
-        icon: 'text-red-600',
-        text: 'text-red-900',
-        slider: 'accent-red-500'
+        bg: "bg-red-500/10",
+        border: "border-red-500/30",
+        icon: "text-red-400",
+        text: "text-red-300",
+        value: "text-red-200",
       },
       yellow: {
-        bg: isActive ? 'bg-yellow-50' : 'bg-yellow-25',
-        border: isActive ? 'border-yellow-300' : 'border-yellow-200',
-        icon: 'text-yellow-600',
-        text: 'text-yellow-900',
-        slider: 'accent-yellow-500'
+        bg: "bg-yellow-500/10",
+        border: "border-yellow-500/30",
+        icon: "text-yellow-400",
+        text: "text-yellow-300",
+        value: "text-yellow-200",
       },
       blue: {
-        bg: isActive ? 'bg-blue-50' : 'bg-blue-25',
-        border: isActive ? 'border-blue-300' : 'border-blue-200',
-        icon: 'text-blue-600',
-        text: 'text-blue-900',
-        slider: 'accent-blue-500'
-      }
+        bg: "bg-blue-500/10",
+        border: "border-blue-500/30",
+        icon: "text-blue-400",
+        text: "text-blue-300",
+        value: "text-blue-200",
+      },
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="space-y-4">
       <div className="flex items-center space-x-2 mb-6">
-        <Shield className="h-5 w-5 text-blue-600" />
-        <h2 className="text-xl font-semibold text-gray-900">Risk Controls</h2>
+        <Shield className="h-5 w-5 text-slate-400" />
+        <h2 className="text-sm font-semibold text-slate-200 uppercase tracking-wide">
+          Risk Management
+        </h2>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {riskItems.map((item) => {
-          const IconComponent = item.icon;
-          const value = riskControls[item.key];
-          const colors = getColorClasses(item.color);
-          
+          const Icon = item.icon;
+          const colorClasses = getColorClasses(item.color);
+          const currentValue = riskControls[item.key];
+
           return (
             <div
               key={item.key}
-              className={`
-                border-2 rounded-lg p-4 transition-all duration-200
-                ${colors.bg} ${colors.border}
-              `}
+              className={`p-4 rounded-lg border ${colorClasses.bg} ${colorClasses.border} transition-all duration-200 hover:border-opacity-50`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg bg-white ${colors.icon}`}>
-                    <IconComponent className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className={`font-medium ${colors.text}`}>
-                      {item.label}
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {item.description}
-                    </p>
-                  </div>
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Icon className={`h-4 w-4 ${colorClasses.icon}`} />
+                  <span className={`text-sm font-medium ${colorClasses.text}`}>
+                    {item.label}
+                  </span>
                 </div>
-                
-                <div className={`text-right font-semibold text-lg ${colors.text}`}>
-                  {value}{item.suffix}
-                </div>
+                <span className={`text-sm font-bold ${colorClasses.value}`}>
+                  {currentValue}
+                  {item.suffix}
+                </span>
               </div>
 
+              {/* Description */}
+              <p className="text-xs text-slate-400 mb-3">{item.description}</p>
+
+              {/* Slider */}
               <div className="space-y-2">
                 <input
                   type="range"
                   min={item.min}
                   max={item.max}
                   step={item.step}
-                  value={value}
-                  onChange={(e) => updateControl(item.key, Number(e.target.value))}
-                  className={`w-full h-2 rounded-lg appearance-none cursor-pointer ${colors.slider}`}
+                  value={currentValue}
+                  onChange={(e) =>
+                    updateControl(item.key, Number(e.target.value))
+                  }
+                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer slider"
                   style={{
-                    background: `linear-gradient(to right, currentColor 0%, currentColor ${((value - item.min) / (item.max - item.min)) * 100}%, #e5e7eb ${((value - item.min) / (item.max - item.min)) * 100}%, #e5e7eb 100%)`
+                    background: `linear-gradient(to right, ${
+                      item.color === "red"
+                        ? "#ef4444"
+                        : item.color === "yellow"
+                        ? "#eab308"
+                        : "#3b82f6"
+                    } 0%, ${
+                      item.color === "red"
+                        ? "#ef4444"
+                        : item.color === "yellow"
+                        ? "#eab308"
+                        : "#3b82f6"
+                    } ${
+                      ((currentValue - item.min) / (item.max - item.min)) * 100
+                    }%, #1e293b ${
+                      ((currentValue - item.min) / (item.max - item.min)) * 100
+                    }%, #1e293b 100%)`,
                   }}
                 />
-                
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{item.min}{item.suffix}</span>
-                  <span>{item.max}{item.suffix}</span>
+
+                {/* Min/Max Labels */}
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>
+                    {item.min}
+                    {item.suffix}
+                  </span>
+                  <span>
+                    {item.max}
+                    {item.suffix}
+                  </span>
                 </div>
+              </div>
+
+              {/* Risk Level Indicator */}
+              <div className="mt-3 flex items-center space-x-2">
+                <span className="text-xs text-slate-500">Risk Level:</span>
+                <div className="flex space-x-1">
+                  {[1, 2, 3, 4, 5].map((level) => {
+                    const riskLevel = Math.ceil(
+                      ((currentValue - item.min) / (item.max - item.min)) * 5
+                    );
+                    const isActive = level <= riskLevel;
+                    return (
+                      <div
+                        key={level}
+                        className={`w-2 h-2 rounded-full ${
+                          isActive
+                            ? item.color === "red"
+                              ? "bg-red-400"
+                              : item.color === "yellow"
+                              ? "bg-yellow-400"
+                              : "bg-blue-400"
+                            : "bg-slate-700"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+                <span className={`text-xs font-medium ${colorClasses.text}`}>
+                  {Math.ceil(
+                    ((currentValue - item.min) / (item.max - item.min)) * 5
+                  )}
+                  /5
+                </span>
               </div>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-2">Risk Management Notes</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• Drawdown control will liquidate positions if losses exceed the threshold</li>
-          <li>• Volatility capping reduces position sizes during high volatility periods</li>
-          <li>• Stop loss provides final protection against catastrophic losses</li>
-        </ul>
+      {/* Risk Summary */}
+      <div className="mt-6 p-4 bg-slate-800/50 border border-slate-700 rounded-lg">
+        <div className="flex items-center space-x-2 mb-2">
+          <AlertTriangle className="h-4 w-4 text-amber-400" />
+          <span className="text-sm font-medium text-slate-200">
+            Risk Summary
+          </span>
+        </div>
+        <div className="text-xs text-slate-400 space-y-1">
+          <div>
+            Portfolio will halt trading if drawdown exceeds{" "}
+            {riskControls.maxDrawdown}%
+          </div>
+          <div>
+            Position sizing adjusted if volatility exceeds{" "}
+            {riskControls.volatilityCap}%
+          </div>
+          <div>
+            Stop loss triggered at {riskControls.stopLoss}% loss from entry
+          </div>
+        </div>
       </div>
     </div>
   );
